@@ -176,7 +176,7 @@ copy "%USERPROFILE%\.codex\pptx-reviewer\AGENTS.md" "%USERPROFILE%\.codex\AGENTS
 変更後： C:\Users\（ユーザー名）\.codex\pptx-reviewer
 ```
 
-> **すでに `.codex\AGENTS.md` がある場合** は上書きせず、ファイルの末尾に内容を**追記**してください。
+> **スキルが複数ある場合の管理方法** は「[複数スキルの管理方法（Codex CLI）](#複数スキルの管理方法codex-cli)」をご覧ください。
 
 #### macOS / Linux の場合
 
@@ -367,7 +367,7 @@ C:\Users\（ユーザー名）\
 変更後： C:\Users\（ユーザー名）\.codex\pptx-reviewer
 ```
 
-> **すでに `.codex\AGENTS.md` がある場合** は上書きせず、ファイルの末尾に内容を**追記**してください。
+> **スキルが複数ある場合の管理方法** は「[複数スキルの管理方法（Codex CLI）](#複数スキルの管理方法codex-cli)」をご覧ください。
 
 ---
 
@@ -401,6 +401,115 @@ Codex CLI が `AGENTS.md` の手順に従い、スライドのテキスト抽出
 | スクリプトのパスエラー | `AGENTS.md` 内の `SKILL_DIR` が実際のパスに置き換えられているか確認 |
 | `ModuleNotFoundError: No module named 'pptx'` | `pip install python-pptx` を実行 |
 | AGENTS.md が読み込まれない | `codex` を起動しているフォルダに `AGENTS.md` があるか確認 |
+
+---
+
+## 複数スキルの管理方法（Codex CLI）
+
+Claude Code は `~/.claude/skills/` の下にスキルごとのフォルダを置けば自動で認識しますが、
+**Codex CLI にはそのような「スキルディレクトリ」の仕組みがありません。**
+スキルがひとつならシンプルですが、複数になると `~/.codex/AGENTS.md` が肥大化していきます。
+
+以下の3パターンから用途に応じて選んでください。
+
+---
+
+### パターン1：1ファイルにまとめる（スキルが少ない場合）
+
+スキルが2〜3個程度であれば、`~/.codex/AGENTS.md` に見出しで区切って並べるのが最もシンプルです。
+
+```markdown
+# === pptx-reviewer ===
+（pptx-reviewer の AGENTS.md 内容）
+
+# === code-reviewer ===
+（別スキルの内容）
+```
+
+**メリット**: 管理ファイルが1つで済む
+**デメリット**: スキルが増えると見通しが悪くなる
+
+---
+
+### パターン2：スキルファイルを分けて結合スクリプトで管理（スキルが多い場合・推奨）
+
+スキルごとに個別ファイルで管理し、バッチファイルで `~/.codex/AGENTS.md` を自動生成します。
+スキルの追加・削除・更新が `~/.codex/AGENTS.md` を直接触らずに行えます。
+
+```
+C:\Users\（ユーザー名）\
+└── .codex\
+    ├── AGENTS.md                ← 自動生成されるファイル（手動編集しない）
+    ├── combine_agents.bat       ← 結合スクリプト（後述）
+    └── skills\                  ← スキルファイルの置き場
+        ├── pptx-reviewer.md     ← このスキルの内容
+        ├── code-reviewer.md     ← 別スキル
+        └── （以降追加していく）
+```
+
+**結合スクリプト（`combine_agents.bat`）：**
+
+```bat
+@echo off
+:: ~/.codex/skills/ 内の全 .md ファイルを結合して AGENTS.md を生成する
+set SKILLS_DIR=%USERPROFILE%\.codex\skills
+set OUTPUT=%USERPROFILE%\.codex\AGENTS.md
+
+echo. > "%OUTPUT%"
+for %%f in ("%SKILLS_DIR%\*.md") do (
+    echo # ========================================= >> "%OUTPUT%"
+    type "%%f" >> "%OUTPUT%"
+    echo. >> "%OUTPUT%"
+)
+echo AGENTS.md を更新しました: %OUTPUT%
+```
+
+**使い方：**
+
+1. 各スキルの AGENTS.md 内容を `~/.codex/skills/pptx-reviewer.md` としてコピー
+2. `combine_agents.bat` をダブルクリックするか実行する
+3. `~/.codex/AGENTS.md` が自動生成・上書きされる
+
+新しいスキルを追加するときは `skills\` フォルダにファイルを追加してスクリプトを再実行するだけです。
+
+**メリット**: スキルの管理が独立していて追加・削除が楽
+**デメリット**: スキルを変更するたびにスクリプトの再実行が必要
+
+---
+
+### パターン3：プロジェクト単位で使い分ける（用途が明確な場合）
+
+Codex CLI は **起動したフォルダ → その親フォルダ → ホームディレクトリ の順に `AGENTS.md` を探して全部読み込みます。**
+この仕組みを活かして、グローバルとプロジェクト単位を分けます。
+
+```
+C:\Users\（ユーザー名）\
+└── .codex\
+    └── AGENTS.md          ← 全案件共通のごく最小限の指示だけ
+
+C:\work\proposals\         ← PPTX レビューをする作業フォルダ
+└── AGENTS.md              ← pptx-reviewer の内容をここに置く
+                              （codex をここから起動すると両方が読まれる）
+```
+
+```cmd
+:: proposals フォルダに AGENTS.md をコピー
+copy "%USERPROFILE%\.codex\pptx-reviewer\AGENTS.md" "C:\work\proposals\AGENTS.md"
+:: SKILL_DIR をパスに置き換える（メモ帳で開いて編集）
+```
+
+**メリット**: グローバルファイルが肥大化しない。プロジェクトごとに必要なスキルだけ有効になる
+**デメリット**: 同じスキルファイルが複数フォルダに散在する可能性がある
+
+---
+
+### どのパターンを選ぶか
+
+| 状況 | 推奨パターン |
+|------|------------|
+| スキルが1〜3個 | パターン1（シンプルに1ファイル） |
+| スキルが4個以上になりそう | パターン2（結合スクリプト管理） |
+| スキルの用途がプロジェクトごとに明確 | パターン3（プロジェクト単位） |
 
 ---
 
