@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "description": "表記ゆれ・用語統一リスト。'correct'が正式表記、'variants'が誤表記（ゆれ）のリストです。自社のルールに合わせて編集してください。",
+  "last_updated": "2026-03-18",
+  "terms": [
+    {
+      "correct": "サーバ",
+      "variants": ["サーバー"],
+      "category": "IT用語",
+      "notes": "末尾長音符を省略する表記を正とする（JIS Z 8301準拠の省略形）"
+    },
+    {
+      "correct": "ユーザ",
+      "variants": ["ユーザー"],
+      "category": "IT用語",
+      "notes": "末尾長音符を省略する表記を正とする"
+    }
+  ],
+  "_examples_commented": [
+    {
+      "_note": "以下はカスタマイズ例です。必要に応じてコピーして terms に追加してください。",
+      "correct": "インタフェース",
+      "variants": ["インターフェース", "インターフェイス"],
+      "category": "IT用語"
+    },
+    {
+      "correct": "ネットワーク",
+      "variants": ["ネットワーク"],
+      "category": "IT用語",
+      "notes": "全角カタカナの長音・半角が混在する場合の統一用"
+    },
+    {
+      "correct": "弊社",
+      "variants": ["当社", "自社"],
+      "category": "ビジネス用語",
+      "notes": "顧客向け資料では弊社を使う"
+    },
+    {
+      "correct": "お客様",
+      "variants": ["お客さん", "顧客"],
+      "category": "ビジネス用語",
+      "notes": "顧客向け資料での呼称統一"
+    }
+  ]
+}

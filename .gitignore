@@ -1,0 +1,34 @@
+# レビュー出力ファイル（生成物）
+*_review.md
+[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*.md
+
+# テスト用PPTXファイル（個人のファイルは除外）
+*.pptx
+# ただしダミーファイルはサンプルとして含める場合は以下をコメントアウト
+# !sample.pptx
+
+# eval実行ワークスペース（テスト結果・中間ファイル）
+*-workspace/
+
+# テキスト抽出・用語チェックの中間ファイル
+extract_out.json
+terminology_check.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタ
+.vscode/
+.idea/
+*.swp
+*.swo

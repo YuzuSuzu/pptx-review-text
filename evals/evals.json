@@ -1,0 +1,125 @@
+{
+  "skill_name": "pptx-reviewer",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "all-slides-review",
+      "prompt": "C:\\work\\claude code_02\\test-files\\dummy_proposal.pptx をすべてのページレビューしてください。レビュー結果はMarkdownファイルに保存してください。",
+      "expected_output": "全7スライドをレビューしたMarkdownレポートファイル。表記ゆれ（サーバー→サーバ）・専門用語・トーン不統一・情報量過多・論理的整合性の問題が指摘されていること。",
+      "files": ["C:\\work\\claude code_02\\test-files\\dummy_proposal.pptx"],
+      "assertions": [
+        {
+          "id": "a1-1",
+          "text": "レポートファイル（dummy_proposal_review.md）が出力されている",
+          "type": "file_exists"
+        },
+        {
+          "id": "a1-2",
+          "text": "スライド2の表記ゆれとして「サーバー」を「サーバ」に統一するよう指摘されている",
+          "type": "content_contains",
+          "keywords": ["サーバー", "サーバ"]
+        },
+        {
+          "id": "a1-3",
+          "text": "スライド4の情報量過多（文字数が多い・スライド分割推奨）が指摘されている",
+          "type": "content_contains",
+          "keywords": ["情報量", "文字数", "スライド4"]
+        },
+        {
+          "id": "a1-4",
+          "text": "スライド5のRBACまたはAPIMまたはIaCが専門用語として指摘されている",
+          "type": "content_contains",
+          "keywords": ["RBAC", "APIM", "IaC"]
+        },
+        {
+          "id": "a1-5",
+          "text": "スライド6のトーン不統一（です・ます vs だ・である）が指摘されている",
+          "type": "content_contains",
+          "keywords": ["トーン", "です・ます", "だ・である"]
+        },
+        {
+          "id": "a1-6",
+          "text": "総合サマリーセクションが含まれている",
+          "type": "content_contains",
+          "keywords": ["総合サマリー", "サマリー"]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "page-specific-review",
+      "prompt": "C:\\work\\claude code_02\\test-files\\dummy_proposal.pptx の 2,5,6 ページをレビューしてください。レビュー結果はMarkdownファイルに保存してください。",
+      "expected_output": "スライド2・5・6のみをレビューしたMarkdownレポートファイル。",
+      "files": ["C:\\work\\claude code_02\\test-files\\dummy_proposal.pptx"],
+      "assertions": [
+        {
+          "id": "a2-1",
+          "text": "レポートファイル（dummy_proposal_review.md）が出力されている",
+          "type": "file_exists"
+        },
+        {
+          "id": "a2-2",
+          "text": "スライド2・5・6がレビュー対象として明示されている",
+          "type": "content_contains",
+          "keywords": ["スライド 2", "スライド 5", "スライド 6"]
+        },
+        {
+          "id": "a2-3",
+          "text": "対象外ページ（スライド1・3・4・7）の指摘事項が含まれていない",
+          "type": "content_not_contains",
+          "keywords": ["スライド 1：", "スライド 3：", "スライド 4：", "スライド 7："]
+        },
+        {
+          "id": "a2-4",
+          "text": "スライド2の表記ゆれ（サーバー→サーバ）が指摘されている",
+          "type": "content_contains",
+          "keywords": ["サーバー", "サーバ"]
+        },
+        {
+          "id": "a2-5",
+          "text": "スライド5の専門用語（RBAC等）が指摘されている",
+          "type": "content_contains",
+          "keywords": ["RBAC", "APIM", "専門用語"]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "focused-review",
+      "prompt": "C:\\work\\claude code_02\\test-files\\dummy_proposal.pptx の 3,4,5 ページをレビューしてください。特に顧客向け表現と論理的整合性を重点的に確認してください。レビュー結果はMarkdownファイルに保存してください。",
+      "expected_output": "スライド3・4・5のみをレビューしたMarkdownレポートファイル。論理的整合性と顧客向け表現の指摘が重点的に含まれていること。",
+      "files": ["C:\\work\\claude code_02\\test-files\\dummy_proposal.pptx"],
+      "assertions": [
+        {
+          "id": "a3-1",
+          "text": "レポートファイル（dummy_proposal_review.md）が出力されている",
+          "type": "file_exists"
+        },
+        {
+          "id": "a3-2",
+          "text": "スライド3・4・5がレビュー対象として明示されている",
+          "type": "content_contains",
+          "keywords": ["スライド 3", "スライド 4", "スライド 5"]
+        },
+        {
+          "id": "a3-3",
+          "text": "スライド3の論理的整合性の問題（主語述語のねじれまたは因果関係の問題）が指摘されている",
+          "type": "content_contains",
+          "keywords": ["ねじれ", "矛盾", "因果", "論理"]
+        },
+        {
+          "id": "a3-4",
+          "text": "スライド4の情報量過多が指摘されている",
+          "type": "content_contains",
+          "keywords": ["情報量", "文字数", "分割"]
+        },
+        {
+          "id": "a3-5",
+          "text": "スライド5のRBAC・APIM・IaC・ZTNA・SIEMのいずれかが専門用語として指摘されている",
+          "type": "content_contains",
+          "keywords": ["RBAC", "APIM", "IaC", "ZTNA", "SIEM"]
+        }
+      ]
+    }
+  ]
+}
