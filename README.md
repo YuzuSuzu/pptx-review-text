@@ -29,6 +29,141 @@
 
 ---
 
+## このスキルを Claude Code CLI に追加する方法（導入済みの方向け）
+
+> Claude Code CLI がまだ入っていない方は、次の「[はじめてのセットアップ](#はじめてのセットアップclaude-code-cli-導入手順)」を先にご覧ください。
+
+---
+
+### STEP 1: このリポジトリを取得する
+
+ダウンロードしたいフォルダに移動してから、以下のどちらかの方法で取得します。
+
+**方法 A：git でクローンする（推奨）**
+
+```cmd
+git clone https://github.com/YuzuSuzu/pptx-review-text.git
+```
+
+実行すると、現在のフォルダの中に `pptx-review-text` というフォルダが作られます。
+
+**方法 B：ZIP でダウンロードする（git がない場合）**
+
+1. このページ上部の緑色の **「Code」** ボタンをクリック
+2. **「Download ZIP」** をクリック
+3. ダウンロードした ZIP を右クリック →「すべて展開」で解凍
+4. 解凍してできたフォルダ名を `pptx-reviewer` に変更する
+
+---
+
+### STEP 2: スキルフォルダに配置する
+
+Claude Code は **ホームディレクトリの `.claude/skills/` フォルダ**の中を自動でスキルとして認識します。
+ここに `pptx-reviewer` という名前のフォルダを置くだけで使えるようになります。
+
+#### スキルフォルダの場所（OS 別）
+
+| OS | スキルフォルダのパス |
+|----|--------------------|
+| Windows | `C:\Users\（ユーザー名）\.claude\skills\` |
+| macOS / Linux | `~/.claude/skills/` |
+
+> **`.claude` フォルダが見えない場合（Windows）**：エクスプローラーの「表示」→「隠しファイル」にチェックを入れると表示されます。
+
+#### Windows の場合（コマンドプロンプト）
+
+```cmd
+:: スキルフォルダがなければ作成（初回のみ）
+mkdir "%USERPROFILE%\.claude\skills"
+
+:: pptx-reviewer をコピー（方法Aでクローンした場合）
+xcopy /E /I pptx-review-text "%USERPROFILE%\.claude\skills\pptx-reviewer"
+```
+
+方法 B（ZIP 解凍・リネーム済み）の場合は、エクスプローラーで `pptx-reviewer` フォルダを以下の場所に移動するだけでも OK です。
+
+```
+C:\Users\（ユーザー名）\.claude\skills\
+```
+
+#### macOS / Linux の場合（ターミナル）
+
+```bash
+mkdir -p ~/.claude/skills
+cp -r pptx-review-text ~/.claude/skills/pptx-reviewer
+```
+
+---
+
+### STEP 3: 配置後のフォルダ構成を確認する
+
+配置が正しければ、以下のような構成になっているはずです。
+
+```
+C:\Users\（ユーザー名）\           ←「ホームディレクトリ」と呼ぶ場所
+└── .claude\
+    └── skills\
+        └── pptx-reviewer\               ← このフォルダ名が重要
+            ├── SKILL.md                 ← Claude Code はここを読んでスキルを認識する ★必須
+            ├── README.md
+            ├── scripts\
+            │   ├── extract_pptx.py
+            │   ├── check_terminology.py
+            │   └── create_dummy_pptx.py
+            ├── references\
+            │   └── terminology.json
+            └── evals\
+                └── evals.json
+```
+
+> **チェックポイント**：`SKILL.md` が `pptx-reviewer\` の直下にあることが必須です。
+> ここにないと Claude Code がスキルを認識できません。
+
+---
+
+### STEP 4: python-pptx をインストールする
+
+このスキルはスライドのテキスト抽出に Python ライブラリ `python-pptx` を使います。
+以下のコマンドでインストールしてください（1 回だけ実行すれば OK）。
+
+```cmd
+pip install python-pptx
+```
+
+インストールできたか確認します。
+
+```cmd
+python -c "import pptx; print('インストール済みです')"
+```
+
+`インストール済みです` と表示されれば準備完了です。
+
+---
+
+### STEP 5: 実際に使ってみる
+
+レビューしたい PPTX ファイルが入っているフォルダに移動してから Claude Code を起動します。
+
+```cmd
+cd C:\Users\（ユーザー名）\Documents
+claude
+```
+
+チャット画面が開いたら、以下のように入力します。
+
+```
+proposal.pptx をレビューしてください。
+```
+
+Claude Code が自動でスキルを認識してレビューを開始します。
+レビュー結果は **PPTX ファイルと同じフォルダ** に Markdown ファイルとして保存されます。
+
+> **うまく動かない場合**：
+> `%USERPROFILE%\.claude\skills\pptx-reviewer\SKILL.md` がエクスプローラーで確認できるか見てください。
+> ファイルがなければ STEP 2 からやり直してください。
+
+---
+
 ## はじめてのセットアップ（Claude Code CLI 導入手順）
 
 このスキルは **Claude Code CLI**（Anthropic 社製の AI コーディングアシスタント）と一緒に使います。
