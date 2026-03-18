@@ -14,7 +14,7 @@
 
 ## スクリプトの場所
 
-このリポジトリを配置したディレクトリ（以下 `SKILL_DIR`）のスクリプトを使用します。
+このファイルを `~/.codex/AGENTS.md` として配置した場合、スクリプトは以下のパスにあります。
 
 | スクリプト | 用途 |
 |-----------|------|
@@ -22,8 +22,12 @@
 | `SKILL_DIR/scripts/check_terminology.py` | 用語統一リストとの照合・表記ゆれ検出 |
 | `SKILL_DIR/references/terminology.json` | 用語統一リスト |
 
-> **Codex CLI を pptx-reviewer フォルダ内から起動する場合** は `SKILL_DIR` を `./`（カレントディレクトリ）として読み替えられます。
-> **別フォルダから起動する場合** は `SKILL_DIR` をリポジトリの絶対パスに置き換えてください。
+**`SKILL_DIR` はセットアップ時に実際のパスに置き換えてください。**
+
+- Windows 推奨配置の場合：`C:\Users\（ユーザー名）\.codex\pptx-reviewer`
+- macOS / Linux 推奨配置の場合：`/home/（ユーザー名）/.codex/pptx-reviewer`
+
+> このファイルをリポジトリフォルダ内から直接使う場合（動作確認向け）は、`SKILL_DIR` を `./` に読み替えられます。
 
 ---
 
