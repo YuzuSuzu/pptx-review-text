@@ -141,16 +141,31 @@ python <skill-dir>/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5
 
 ---
 
-## Step 4: 用語チェックスクリプトの実行
+## Step 4: テキスト抽出 → 用語チェックの一括実行
 
-`scripts/check_terminology.py` を使って、抽出したテキストと用語リストを照合する。
+`extract_pptx.py` の出力を直接 `check_terminology.py` にパイプで渡す。**中間ファイルは作成しない。**
 
+全スライドを対象にする場合：
 ```bash
-python <skill-dir>/scripts/check_terminology.py <extracted-json> <skill-dir>/references/terminology.json
+python <skill-dir>/scripts/extract_pptx.py <path-to-pptx> | python <skill-dir>/scripts/check_terminology.py - <skill-dir>/references/terminology.json
 ```
+
+特定ページのみ対象にする場合：
+```bash
+python <skill-dir>/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5 | python <skill-dir>/scripts/check_terminology.py - <skill-dir>/references/terminology.json
+```
+
+> **注意（Windows）**: Windows のコマンドプロンプト / PowerShell でパイプ経由のエンコーディングが乱れる場合は、先頭に `set PYTHONUTF8=1` を付けてから実行する。
 
 出力JSONには、スライドごとに「どの用語が、どのスライドの、どのコンテキストで誤表記されていたか」が含まれる。
 この結果をStep 5の観点1（文章校正・表記ゆれ）に組み込む。
+
+パイプが使えない環境では、一時ファイルを経由してもよい。その場合はレビュー完了後に必ず削除すること：
+```bash
+python <skill-dir>/scripts/extract_pptx.py <path-to-pptx> > extract_out.json
+python <skill-dir>/scripts/check_terminology.py extract_out.json <skill-dir>/references/terminology.json
+del extract_out.json
+```
 
 ---
 

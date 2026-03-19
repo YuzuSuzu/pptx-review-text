@@ -85,19 +85,23 @@ pip install python-pptx
 
 ---
 
-## Step 4: テキスト抽出
+## Step 4: テキスト抽出 → 用語チェックの一括実行
+
+`extract_pptx.py` の出力を直接 `check_terminology.py` にパイプで渡す。**中間ファイルは作成しない。**
 
 全スライドを対象にする場合：
 ```bash
-python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx>
+python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> | python SKILL_DIR/scripts/check_terminology.py - SKILL_DIR/references/terminology.json
 ```
 
 特定ページのみ対象にする場合（カンマ区切りでページ番号を指定）：
 ```bash
-python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5
+python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5 | python SKILL_DIR/scripts/check_terminology.py - SKILL_DIR/references/terminology.json
 ```
 
-出力される JSON の主なフィールド：
+> **注意（Windows）**: エンコーディングが乱れる場合は `set PYTHONUTF8=1` を先に実行する。
+
+出力される JSON の主なフィールド（extract_pptx.py より）：
 - `total_slides`: ファイル全体のスライド枚数
 - `reviewed_slides`: 実際にレビュー対象としたスライド番号のリスト
 - `slides[].title`: スライドタイトル
@@ -106,13 +110,18 @@ python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5
 - `slides[].shapes[].paragraphs`: 段落テキストと見出しレベル（level）
 - `slides[].notes`: ノートペイン（スピーカーノート）のテキスト。ノートがない場合は `null`
 
+パイプが使えない環境では一時ファイルを経由してもよい。その場合はレビュー完了後に必ず削除すること：
+```bash
+python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> > extract_out.json
+python SKILL_DIR/scripts/check_terminology.py extract_out.json SKILL_DIR/references/terminology.json
+del extract_out.json
+```
+
 ---
 
-## Step 5: 用語チェックスクリプトの実行
+## Step 5: 用語チェック結果の確認
 
-```bash
-python SKILL_DIR/scripts/check_terminology.py <extracted-json> SKILL_DIR/references/terminology.json
-```
+前の手順で `check_terminology.py` が出力した JSON を確認する（stdout に出力されるため変数やメモリ上で扱う）。
 
 出力 JSON には、スライドごとに「どの用語が、どのスライドの、どのコンテキストで誤表記されていたか」が含まれる。
 この結果を Step 6 の観点1（文章校正・表記ゆれ）に組み込む。

@@ -4,19 +4,29 @@ extract_pptx.py が出力したJSONに表記ゆれがないかチェックする
 
 Usage:
   python check_terminology.py <extracted-json> <terminology-json>
+  python extract_pptx.py <pptx> | python check_terminology.py - <terminology-json>
 
 例:
+  # ファイルを経由する場合
   python check_terminology.py extract_out.json references/terminology.json
+
+  # パイプで直接渡す場合（中間ファイル不要）
+  python extract_pptx.py proposal.pptx | python check_terminology.py - references/terminology.json
 
 出力: JSON形式で発見した表記ゆれをstdoutに出力する
 """
 import sys
+import io
 import json
 import re
 import argparse
 
 
 def load_json(path):
+    """パスが "-" の場合は stdin から読み込む。"""
+    if path == "-":
+        stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
+        return json.load(stdin)
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
