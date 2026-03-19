@@ -74,6 +74,7 @@ def main():
         sys.exit(1)
 
     terms = terminology.get("terms", [])
+    print(f"[2/2] 用語チェック中... ({len(terms)}語)", file=sys.stderr)
     results = []
 
     for slide in extracted.get("slides", []):
@@ -99,6 +100,9 @@ def main():
                 "slide_title": slide_title,
                 "hits": slide_hits,
             })
+
+    total_hits = sum(len(r["hits"]) for r in results)
+    print(f"[2/2] 用語チェック完了 — {len(results)}スライドで{total_hits}件の表記ゆれを検出", file=sys.stderr)
 
     output = {
         "total_slides_checked": len(extracted.get("slides", [])),

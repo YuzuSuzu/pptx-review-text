@@ -362,10 +362,20 @@ def main():
             print("ERROR: 有効なページ番号が1つも残りませんでした。", file=sys.stderr)
             sys.exit(1)
 
+    target_count = len(target_pages) if target_pages else total_slides
+    page_label = f"{sorted(target_pages)}" if target_pages else f"全{total_slides}枚"
+    print(f"[1/2] テキスト抽出中... (対象: {page_label})", file=sys.stderr)
+
     slides = []
+    extracted_count = 0
     for i, slide in enumerate(prs.slides, start=1):
         if target_pages is None or i in target_pages:
+            extracted_count += 1
+            print(f"[1/2]   スライド {i}/{total_slides} 処理中 ({extracted_count}/{target_count}枚目)", file=sys.stderr)
             slides.append(extract_slide(slide, i))
+
+    total_chars = sum(s["total_chars"] for s in slides)
+    print(f"[1/2] 抽出完了 — {extracted_count}枚, 約{total_chars:,}文字", file=sys.stderr)
 
     result = {
         "total_slides": total_slides,
