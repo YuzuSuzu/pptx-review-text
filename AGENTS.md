@@ -14,20 +14,22 @@
 
 ## スクリプトの場所
 
-このファイルを `~/.codex/AGENTS.md` として配置した場合、スクリプトは以下のパスにあります。
+このスキルは以下の標準パスに配置されていることを前提とします。
+
+| OS | スキルフォルダのパス |
+|----|--------------------|
+| Windows | `%USERPROFILE%\.codex\skills\pptx-reviewer` |
+| macOS / Linux | `~/.codex/skills/pptx-reviewer` |
+
+スクリプトは以下のパスにあります（パス修正不要・自動検出）：
 
 | スクリプト | 用途 |
 |-----------|------|
-| `SKILL_DIR/scripts/extract_pptx.py` | .pptx からテキスト・構造情報を抽出 |
-| `SKILL_DIR/scripts/check_terminology.py` | 用語統一リストとの照合・表記ゆれ検出 |
-| `SKILL_DIR/references/terminology.json` | 用語統一リスト |
+| `~/.codex/skills/pptx-reviewer/scripts/extract_pptx.py` | .pptx からテキスト・構造情報を抽出 |
+| `~/.codex/skills/pptx-reviewer/scripts/check_terminology.py` | 用語統一リストとの照合・表記ゆれ検出（terminology.json を自動検出） |
+| `~/.codex/skills/pptx-reviewer/references/terminology.json` | 用語統一リスト |
 
-**`SKILL_DIR` はセットアップ時に実際のパスに置き換えてください。**
-
-- Windows 推奨配置の場合：`C:\Users\（ユーザー名）\.codex\pptx-reviewer`
-- macOS / Linux 推奨配置の場合：`/home/（ユーザー名）/.codex/pptx-reviewer`
-
-> このファイルをリポジトリフォルダ内から直接使う場合（動作確認向け）は、`SKILL_DIR` を `./` に読み替えられます。
+> `check_terminology.py` は隣接する `references/terminology.json` を自動的に参照するため、パスの指定は不要です。
 
 ---
 
@@ -73,7 +75,8 @@ pip install python-pptx
 
 ## Step 3: 用語統一リストの読み込み
 
-`SKILL_DIR/references/terminology.json` を読み込み、正式表記と誤表記（ゆれ）のリストを把握する。
+`~/.codex/skills/pptx-reviewer/references/terminology.json` を読み込み、正式表記と誤表記（ゆれ）のリストを把握する。
+このファイルは `check_terminology.py` が自動的に参照するため、コマンドへの指定は不要。
 
 ファイルの構造：
 ```json
@@ -99,17 +102,25 @@ pip install python-pptx
 
 `extract_pptx.py` の出力を直接 `check_terminology.py` にパイプで渡す。**中間ファイルは作成しない。**
 
+**bash / PowerShell（macOS・Linux・Windows PowerShell）：**
+
 全スライドを対象にする場合：
 ```bash
-python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> | python SKILL_DIR/scripts/check_terminology.py - SKILL_DIR/references/terminology.json
+python ~/.codex/skills/pptx-reviewer/scripts/extract_pptx.py <path-to-pptx> | python ~/.codex/skills/pptx-reviewer/scripts/check_terminology.py -
 ```
 
 特定ページのみ対象にする場合（カンマ区切りでページ番号を指定）：
 ```bash
-python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5 | python SKILL_DIR/scripts/check_terminology.py - SKILL_DIR/references/terminology.json
+python ~/.codex/skills/pptx-reviewer/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5 | python ~/.codex/skills/pptx-reviewer/scripts/check_terminology.py -
 ```
 
-> **注意（Windows）**: エンコーディングが乱れる場合は `set PYTHONUTF8=1` を先に実行する。
+**Windows コマンドプロンプト（CMD）の場合：**
+
+```cmd
+python %USERPROFILE%\.codex\skills\pptx-reviewer\scripts\extract_pptx.py <path-to-pptx> | python %USERPROFILE%\.codex\skills\pptx-reviewer\scripts\check_terminology.py -
+```
+
+> **注意（Windows）**: エンコーディングが乱れる場合は先頭に `set PYTHONUTF8=1` を付けてから実行する。ただし各スクリプトは起動時に自動でUTF-8設定を行うため、通常は不要。
 
 出力される JSON の主なフィールド（extract_pptx.py より）：
 - `total_slides`: ファイル全体のスライド枚数
@@ -122,8 +133,8 @@ python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> --pages 1,3,5 | python S
 
 パイプが使えない環境では一時ファイルを経由してもよい。その場合はレビュー完了後に必ず削除すること：
 ```bash
-python SKILL_DIR/scripts/extract_pptx.py <path-to-pptx> > extract_out.json
-python SKILL_DIR/scripts/check_terminology.py extract_out.json SKILL_DIR/references/terminology.json
+python ~/.codex/skills/pptx-reviewer/scripts/extract_pptx.py <path-to-pptx> > extract_out.json
+python ~/.codex/skills/pptx-reviewer/scripts/check_terminology.py extract_out.json
 del extract_out.json
 ```
 

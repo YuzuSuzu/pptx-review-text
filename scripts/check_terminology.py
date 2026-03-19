@@ -2,16 +2,18 @@
 用語統一リスト（terminology.json）を使って、
 extract_pptx.py が出力したJSONに表記ゆれがないかチェックするスクリプト。
 
+terminology_json 引数は省略可能。省略時はこのスクリプトと同じスキルフォルダ内の
+references/terminology.json を自動的に参照する。
+
 Usage:
-  python check_terminology.py <extracted-json> <terminology-json>
-  python extract_pptx.py <pptx> | python check_terminology.py - <terminology-json>
+  # パイプで直接渡す場合（中間ファイル不要・推奨）
+  python extract_pptx.py proposal.pptx | python check_terminology.py -
 
-例:
   # ファイルを経由する場合
-  python check_terminology.py extract_out.json references/terminology.json
+  python check_terminology.py extract_out.json
 
-  # パイプで直接渡す場合（中間ファイル不要）
-  python extract_pptx.py proposal.pptx | python check_terminology.py - references/terminology.json
+  # 用語リストを明示指定する場合
+  python check_terminology.py - /path/to/terminology.json
 
 出力: JSON形式で発見した表記ゆれをstdoutに出力する
 """
@@ -65,11 +67,21 @@ def find_variants_in_text(text, correct, variants):
 
 def main():
     _setup_utf8()
+
+    # このスクリプトの場所から references/terminology.json を自動検出
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+    _default_terminology = os.path.join(_script_dir, "..", "references", "terminology.json")
+
     parser = argparse.ArgumentParser(
         description="抽出済みJSONと用語統一リストを照合して表記ゆれを検出する"
     )
-    parser.add_argument("extracted_json", help="extract_pptx.py の出力JSONファイル")
-    parser.add_argument("terminology_json", help="references/terminology.json のパス")
+    parser.add_argument("extracted_json", help="extract_pptx.py の出力JSONファイル（'-' で stdin）")
+    parser.add_argument(
+        "terminology_json",
+        nargs="?",
+        default=_default_terminology,
+        help=f"references/terminology.json のパス（省略時: {_default_terminology}）",
+    )
     args = parser.parse_args()
 
     try:
@@ -82,6 +94,7 @@ def main():
         terminology = load_json(args.terminology_json)
     except Exception as e:
         print(f"ERROR: 用語リストを読み込めませんでした: {e}", file=sys.stderr)
+        print(f"       パス: {args.terminology_json}", file=sys.stderr)
         sys.exit(1)
 
     terms = terminology.get("terms", [])
