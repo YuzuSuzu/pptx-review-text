@@ -17,9 +17,19 @@ Usage:
 """
 import sys
 import io
+import os
 import json
 import re
 import argparse
+
+
+def _setup_utf8():
+    """stdout/stderr を UTF-8 に統一する（Windows の cp932 対策）。"""
+    os.environ.setdefault("PYTHONUTF8", "1")
+    if hasattr(sys.stdout, "buffer"):
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "buffer"):
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 
 def load_json(path):
@@ -54,6 +64,7 @@ def find_variants_in_text(text, correct, variants):
 
 
 def main():
+    _setup_utf8()
     parser = argparse.ArgumentParser(
         description="抽出済みJSONと用語統一リストを照合して表記ゆれを検出する"
     )
@@ -110,10 +121,8 @@ def main():
         "terminology_version": terminology.get("version", "unknown"),
         "results": results,
     }
-    import io
-    stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-    stdout.write(json.dumps(output, ensure_ascii=False, indent=2))
-    stdout.flush()
+    sys.stdout.write(json.dumps(output, ensure_ascii=False, indent=2))
+    sys.stdout.flush()
 
 
 if __name__ == "__main__":

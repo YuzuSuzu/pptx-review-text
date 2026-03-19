@@ -18,8 +18,21 @@ Usage:
   python extract_pptx.py <path-to-pptx> --pages 1,3,5  # 指定ページのみ
 """
 import sys
+import io
+import os
 import json
 import argparse
+from concurrent.futures import ThreadPoolExecutor
+
+
+def _setup_utf8():
+    """stdout/stderr を UTF-8 に統一する（Windows の cp932 対策）。
+    子プロセス・パイプにも引き継がれるよう環境変数も設定する。"""
+    os.environ.setdefault("PYTHONUTF8", "1")
+    if hasattr(sys.stdout, "buffer"):
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "buffer"):
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 try:
     from pptx import Presentation
@@ -323,6 +336,7 @@ def extract_slide(slide, slide_number):
 
 
 def main():
+    _setup_utf8()
     parser = argparse.ArgumentParser(
         description="pptxファイルからスライドのテキストと構造情報をJSON形式で抽出する"
     )
@@ -362,17 +376,31 @@ def main():
             print("ERROR: 有効なページ番号が1つも残りませんでした。", file=sys.stderr)
             sys.exit(1)
 
-    target_count = len(target_pages) if target_pages else total_slides
+    # 対象スライドのリストを構築
+    target_slide_pairs = [
+        (i, slide) for i, slide in enumerate(prs.slides, start=1)
+        if target_pages is None or i in target_pages
+    ]
+    target_count = len(target_slide_pairs)
     page_label = f"{sorted(target_pages)}" if target_pages else f"全{total_slides}枚"
     print(f"[1/2] テキスト抽出中... (対象: {page_label})", file=sys.stderr)
 
+    # スライドを並列処理（最大4スレッド）
+    # python-pptx の lxml ツリーは読み取り専用のため並列アクセス安全
+    max_workers = min(4, target_count) if target_count > 0 else 1
     slides = []
     extracted_count = 0
-    for i, slide in enumerate(prs.slides, start=1):
-        if target_pages is None or i in target_pages:
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(extract_slide, slide, i) for i, slide in target_slide_pairs]
+        for future in futures:
+            result_slide = future.result()
             extracted_count += 1
-            print(f"[1/2]   スライド {i}/{total_slides} 処理中 ({extracted_count}/{target_count}枚目)", file=sys.stderr)
-            slides.append(extract_slide(slide, i))
+            print(
+                f"[1/2]   スライド {result_slide['slide_number']}/{total_slides} 処理完了"
+                f" ({extracted_count}/{target_count}枚目)",
+                file=sys.stderr,
+            )
+            slides.append(result_slide)
 
     total_chars = sum(s["total_chars"] for s in slides)
     print(f"[1/2] 抽出完了 — {extracted_count}枚, 約{total_chars:,}文字", file=sys.stderr)
@@ -383,10 +411,8 @@ def main():
         "slides": slides,
     }
 
-    import io
-    stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
-    stdout.write(json.dumps(result, ensure_ascii=False, indent=2))
-    stdout.flush()
+    sys.stdout.write(json.dumps(result, ensure_ascii=False, indent=2))
+    sys.stdout.flush()
 
 
 if __name__ == "__main__":
